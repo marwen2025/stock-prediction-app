@@ -1,105 +1,83 @@
-import React, { Component } from 'react'
-import ReactHighcharts from 'react-highcharts/ReactHighstock.src'
-import priceData from './assets/btcdata.json'
-import moment from 'moment'
+import React, { useState, useEffect } from 'react';
+import ReactHighcharts from 'react-highcharts/ReactHighstock.src';
+import moment from 'moment';
 
-export default class App extends Component {
-  render() {
-    const options = {style: 'currency', currency: 'USD'};
-    const numberFormat = new Intl.NumberFormat('en-US', options);
-    const configPrice = {
-      
-      yAxis: [{
-        offset: 20,
+const App = () => {
+  const [selectedModel, setSelectedModel] = useState('tesla');
+  const [stockData, setStockData] = useState([]);
 
-        labels: {
-          formatter: function () {
-            return numberFormat.format(this.value) 
-          }
-          ,
-          x: -15,
-          style: {
-            "color": "#000", "position": "absolute"
-
+  useEffect(() => {
+    // Fetch stock prediction data from Flask server
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/predict', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          align: 'left'
-        },
-      },
-        
-      ],
-      tooltip: {
-        shared: true,
-        formatter: function () {
-          return numberFormat.format(this.y, 0) +  '</b><br/>' + moment(this.x).format('MMMM Do YYYY, h:mm')
-        }
-      },
-      plotOptions: {
-        series: {
-          showInNavigator: true,
-          gapSize: 6,
+          body: JSON.stringify({ model_name: selectedModel }),
+        });
 
-        }
-      },
-      rangeSelector: {
-        selected: 1
-      },
-      title: {
-        text: `Bitcoin stock price`
-      },
-      chart: {
-        height: 600,
-      },
-  
-      credits: {
-        enabled: false
-      },
-  
-      legend: {
-        enabled: true
-      },
-      xAxis: {
-        type: 'date',
-      },
-      rangeSelector: {
-        buttons: [{
-          type: 'day',
-          count: 1,
-          text: '1d',
-        }, {
-          type: 'day',
-          count: 7,
-          text: '7d'
-        }, {
-          type: 'month',
-          count: 1,
-          text: '1m'
-        }, {
-          type: 'month',
-          count: 3,
-          text: '3m'
-        },
-          {
-          type: 'all',
-          text: 'All'
-        }],
-        selected: 4
-      },
-      series: [{
+        const data = await response.json();
+        setStockData(data);
+      } catch (error) {
+        console.error('Error fetching stock prediction data:', error);
+      }
+    };
+
+    fetchData();
+  }, [selectedModel]); // Re-run effect when selectedModel changes
+
+  const options = { style: 'currency', currency: 'USD' };
+  const numberFormat = new Intl.NumberFormat('en-US', options);
+
+  const configPrice = {
+    // ... existing chart configuration ...
+
+    title: {
+      text: `Stock Price and Predictions for ${selectedModel}`,
+    },
+
+    series: [
+      {
         name: 'Price',
         type: 'spline',
-  
-        data: priceData,
+        data: stockData.map((item) => ({
+          x: new Date(item.date).getTime(),
+          y: item.close,
+        })),
         tooltip: {
-          valueDecimals: 2
+          valueDecimals: 2,
         },
-  
-      }
-      ]
-    };
-    return (
-      <div>
-         <ReactHighcharts config = {configPrice}></ReactHighcharts>
-      </div>
-    )
-  }
-}
+      },
+      {
+        name: 'Predicted Price',
+        type: 'spline',
+        data: stockData.map((item) => ({
+          x: new Date(item.date).getTime(),
+          y: item.predicted,
+        })),
+        tooltip: {
+          valueDecimals: 2,
+        },
+      },
+    ],
+  };
+
+  return (
+    <div>
+      <label>Select Stock Model:</label>
+      <select onChange={(e) => setSelectedModel(e.target.value)}>
+        <option value="tesla">Tesla</option>
+        <option value="netflix">Netflix</option>
+        <option value="amazon">Amazon</option>
+        <option value="samsung">Samsung</option>
+        <option value="apple">Apple</option>
+        <option value="meta">Meta</option>
+      </select>
+      <ReactHighcharts config={configPrice}></ReactHighcharts>
+    </div>
+  );
+};
+
+export default App;
