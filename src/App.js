@@ -9,7 +9,7 @@ import Image from './assets/8474109.png'
 const App = () => {
   const [selectedModel, setSelectedModel] = useState('tesla');
   const [stockData, setStockData] = useState([]);
-
+  const [selectedSeries, setSelectedSeries] = useState('both');
   useEffect(() => {
     // Fetch stock prediction data from Flask server
     const fetchData = async () => {
@@ -34,12 +34,15 @@ const App = () => {
 
   const options = { style: 'currency', currency: 'USD' };
   const numberFormat = new Intl.NumberFormat('en-US', options);
+  const handleSeriesChange = (event) => {
+    setSelectedSeries(event.target.value);
+  };
 
   const configPrice = {
     // ... existing chart configuration ...
 
     title: {
-      text: `Stock Price and Predictions for ${selectedModel}`,
+      text: `Stock ${selectedSeries === 'both' ? 'Price and Predictions' : selectedSeries} for ${selectedModel}`,
     },
 
     series: [
@@ -53,7 +56,10 @@ const App = () => {
         tooltip: {
           valueDecimals: 2,
         },
+        color: 'blue', // Set the color for the 'Price' curve
+        visible: selectedSeries === 'both' || selectedSeries === 'Price',
       },
+      
       {
         name: 'Predicted Price',
         type: 'spline',
@@ -64,6 +70,8 @@ const App = () => {
         tooltip: {
           valueDecimals: 2,
         },
+        color: 'orange', // Set the color for the 'Price' curve
+        visible: selectedSeries === 'both' || selectedSeries === 'Predicted Price',
       },
     ],
   };
@@ -101,6 +109,12 @@ const App = () => {
     </select>
 
     <div className="mt-8">
+    <label className='block text-xl font-bold mb-2 text-gray-800' htmlFor="seriesSelect">Select Price: </label>
+      <select className='w-full p-2 border rounded-md' id="seriesSelect" value={selectedSeries} onChange={handleSeriesChange}>
+        <option value="both">Both</option>
+        <option value="Price">Price</option>
+        <option value="Predicted Price">Predicted Price</option>
+      </select>
       <ReactHighcharts config={configPrice}></ReactHighcharts>
     </div>
   </div>
