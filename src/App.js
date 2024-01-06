@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import ReactHighcharts from 'react-highcharts/ReactHighstock.src';
-import moment from 'moment';
-import { Fragment } from 'react'
-import { Disclosure, Menu, Transition } from '@headlessui/react'
 import Image from './assets/8474109.png'
 
 
@@ -75,12 +72,11 @@ const App = () => {
       },
     ],
   };
-  const [open, setOpen] = useState(false);
 
   return (
 <>
 <div className="flex flex-col h-screen">
-  <div className="bg-gray-800 text-white py-8">
+  <div className="bg-gray-800 text-white py-2">
     <div className="container mx-auto flex items-center justify-center">
       <a href="/#" className="block">
         <img
